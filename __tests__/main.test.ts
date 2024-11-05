@@ -1,3 +1,4 @@
+import path from 'path';
 import { compareErrors, FileWithLineNumbers } from '../src/compareErrors'
 import { ErrorTs } from '../src/main'
 import { outputBaseBranch } from './test_compare_1/outputBaseBranch'
@@ -8,6 +9,8 @@ import { filesAdded, filesModified, filesRemoved } from './test_compare_1/filesC
 
 import { parseTscErrorLine, tscMatcher, parseOutputTsc } from '../src/tscHelpers/parseOutputTsc'
 import { escapeForMarkdown, getBodyComment } from '../src/getBodyComment'
+
+import { parseTsConfigFile } from '../src/tscHelpers/parseTsConfigFileToCompilerOptions';
 
 test('1. parse tsc error line', () => {
   const line = `src/main.ts(39,11): error TS1155: 'const' declarations must be initialized.`
@@ -139,4 +142,9 @@ test('6.1 escapeForMarkdown', () => {
 
 test('6.2 escapeForMarkdown', () => {
   expect(escapeForMarkdown("Type 'boolean' is not assignable to type 'string | number'.")).toEqual("Type 'boolean' is not assignable to type 'string \\| number'.")
+})
+
+test('7. Parse config file', () => {
+  const out = parseTsConfigFile(path.join(__dirname, "./sampleConfig/tsconfig.json"));
+  console.log(out);
 })
