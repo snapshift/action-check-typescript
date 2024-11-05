@@ -11,8 +11,24 @@ type ResultParsingTsConfig = {
 
 export function parseTsConfigFile(configPath: string): ResultParsingTsConfig {
 
-    const content = fs.readFileSync(configPath).toString()
-    const rawParsing = JSON.parse(content)
+    const getContent = (configPath: string): string => fs.readFileSync(configPath).toString()
+    const output = ts.readConfigFile(configPath, getContent)
+
+    const rawParsing = output.config
+    const error = output.error
+
+    if (error) {
+        // modeled after the `formatErrors` function in the typescript
+        // `tsConfigParsing` unit tests:
+        //
+        // https://github.com/microsoft/TypeScript/blob/82a04b29b4f60b887c5c548f406d4dbc9462f79b/src/testRunner/unittests/config/tsconfigParsing.ts#L9
+        throw new Error(ts.formatDiagnosticsWithColorAndContext([error], {
+            getCurrentDirectory: () => "/",
+            getCanonicalFileName: filename => filename,
+            getNewLine: () => "\n"
+        }))
+    }
+
     let parsed: ts.ParsedCommandLine
     let compilerOptions: ts.CompilerOptions
     try {
