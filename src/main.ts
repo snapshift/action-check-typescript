@@ -1,13 +1,13 @@
-import { info, startGroup, endGroup, setFailed } from '@actions/core'
+import { info, startGroup, endGroup, error, setFailed } from '@actions/core'
 import * as path from 'path'
 import { context, getOctokit } from '@actions/github'
 import { createCheck } from './createCheck'
 import * as github from '@actions/github'
 import * as fs from 'fs'
 import { parseTsConfigFile } from './tscHelpers/parseTsConfigFileToCompilerOptions'
-import { getAndValidateArgs, CHECK_FAIL_MODE } from './getAndValidateArgs'
+import { getAndValidateArgs, CHECK_FAIL_MODE, OUTPUT_BEHAVIOUR, COMMENT_BEHAVIOUR } from './getAndValidateArgs'
 import { exec } from '@actions/exec'
-import { getBodyComment } from './getBodyComment'
+import { COMMENT_TITLE, getBodyComment } from './getBodyComment'
 import { checkoutAndInstallBaseBranch } from './checkoutAndInstallBaseBranch'
 import { compareErrors } from './compareErrors'
 import { runTscCli } from './tscHelpers/runTscCli'
@@ -15,25 +15,24 @@ import { parseOutputTsc } from './tscHelpers/parseOutputTsc'
 
 export type ErrorTs = {
   fileName: string
-  line: string
-  column: string
+  line: number
+  column: number
   fileNameResolved?: string
-  code: string
+  code: number
   severity?: string
   message: string
   /** for long error messages */
   extraMsg?: string
 }
-interface PullRequest {
-  number: number;
-  html_url?: string
-  body?: string
-  changed_files: number
-}
 
 async function run(): Promise<void> {
   try {
     const args = getAndValidateArgs()
+
+    if (args.debug) {
+      info(`[config] args: \n${JSON.stringify(args)}`)
+    }
+
     const workingDir = path.join(process.cwd(), args.directory)
     info(`working directory: ${workingDir}`)
 
@@ -161,47 +160,72 @@ async function run(): Promise<void> {
 
     endGroup()
 
-    startGroup(`Creating comment`)
-
-    const commentInfo = {
-      ...context.repo,
-      issue_number: context.payload.pull_request!.number
-    }
-
-    const comment = {
-      ...commentInfo,
-      body: getBodyComment({
-        errorsInProjectBefore: errorsBaseBranch,
-        errorsInProjectAfter: errorsPr,
-        newErrorsInProject: resultCompareErrors.errorsAdded,
-        errorsInModifiedFiles,
-        newErrorsInModifiedFiles
+    if ([OUTPUT_BEHAVIOUR.ANNOTATE, OUTPUT_BEHAVIOUR.COMMENT_AND_ANNOTATE].includes(args.outputBehaviour)) {
+      resultCompareErrors.errorsAdded.forEach(err => {
+        error(`${err.fileName}:${err.line}:${err.column} - ${err.message}`, {
+          file: err.fileName,
+          startLine: err.line,
+          startColumn: err.column,
+          title: err.extraMsg ?? err.message
+        })
       })
     }
-    info(`comment body obtained`)
 
-    try {
-      await octokit.rest.issues.createComment(comment)
-    } catch (e) {
-      info(`Error creating comment: ${(e as Error).message}`)
-      info(`Submitting a PR review comment instead...`)
-      try {
-        const issue = context.issue || pr
-        await octokit.rest.pulls.createReview({
-          owner: issue.owner,
-          repo: issue.repo,
-          pull_number: issue.number,
-          event: 'COMMENT',
-          body: comment.body
-        })
-      } catch (errCreateComment) {
-        info(`Error creating PR review ${(errCreateComment as Error).message}`)
+    if ([OUTPUT_BEHAVIOUR.COMMENT, OUTPUT_BEHAVIOUR.COMMENT_AND_ANNOTATE].includes(args.outputBehaviour)) {
+      startGroup(`Creating comment`)
+
+      const issueNumber = context.payload.pull_request!.number
+
+      const commentInfo = {
+        ...context.repo,
+        issue_number: issueNumber
       }
+
+      const comment = {
+        ...commentInfo,
+        body: getBodyComment({
+          errorsInProjectBefore: errorsBaseBranch,
+          errorsInProjectAfter: errorsPr,
+          newErrorsInProject: resultCompareErrors.errorsAdded,
+          errorsInModifiedFiles,
+          newErrorsInModifiedFiles
+        })
+      }
+      info(`comment body obtained`)
+
+      try {
+        const existingComments = await octokit.rest.issues.listComments({owner: context.repo.owner, repo: context.repo.repo, issue_number: issueNumber})
+        const existingComment = existingComments.data.find(c => !!c.body?.includes(COMMENT_TITLE))
+
+        if (args.commentBehaviour === COMMENT_BEHAVIOUR.EDIT && existingComment) {
+          await octokit.rest.issues.updateComment({
+            comment_id: existingComment.id,
+            ...comment
+          })
+        } else {
+          await octokit.rest.issues.createComment(comment)
+        }
+      } catch (e) {
+        info(`Error creating comment: ${(e as Error).message}`)
+        info(`Submitting a PR review comment instead...`)
+        try {
+          const issue = context.issue || pr
+          await octokit.rest.pulls.createReview({
+            owner: issue.owner,
+            repo: issue.repo,
+            pull_number: issue.number,
+            event: 'COMMENT',
+            body: comment.body
+          })
+        } catch (errCreateComment) {
+          info(`Error creating PR review ${(errCreateComment as Error).message}`)
+        }
+      }
+
+      info(`comment created`)
+
+      endGroup()
     }
-
-    info(`comment created`)
-
-    endGroup()
 
     let shouldFailCheck = false
     let title = ''

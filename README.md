@@ -37,7 +37,7 @@ jobs:
           include: '["\\.ts$"]'
       - name: Detecting files changed
         id: files
-        uses: futuratrepadeira/changed-files@v3.2.1
+        uses: umani/changed-files@v4.0.0
         with:
           repo-token: ${{ github.token }}
           pattern: '^.*\.ts$'
@@ -46,7 +46,7 @@ jobs:
           echo 'Files modified: ${{steps.files.outputs.files_updated}}'
           echo 'Files added: ${{steps.files.outputs.files_created}}'
           echo 'Files removed: ${{steps.files.outputs.files_deleted}}'
-      - uses: Arhia/action-check-typescript@v0.11
+      - uses: snapshift/action-check-typescript@v1.1.0
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           use-check: true
@@ -55,6 +55,8 @@ jobs:
           files-added: ${{steps.files.outputs.files_created}}
           files-deleted: ${{steps.files.outputs.files_deleted}}
           line-numbers: ${{steps.diff.outputs.lineNumbers}}
+          output-behaviour: both
+          comment-behaviour: new
 ```
 ## Customize the check  
 
@@ -73,6 +75,21 @@ Value|Behaviour
 `added`| Check fails if some errors are added in the files added/modified in the PR branch.  
 `errors_in_pr`| Check fails if any errors are present in the files added/modified in the PR branch (even if already in base branche).  
 `errors_in_code`| Check fails if any errors are present in the whole branch.  
+
+The output behaviour depends on the value of `output-behaviour`
+
+Value|Behaviour
+-- | --
+`comment` | Default, comments on the PR with the errors found for this run.
+`annotate` | Uses github line annotations with the errors found for this run.
+`both` | Does both of the above.
+
+The comment behaviour depends on the value of `comment-behaviour`
+
+Value|Behaviour
+-- | --
+`new` | Default, adds a new comment for every run of the action.
+`edit` | Updates a previous run's comment, if one exists, otherwise creates a new comment.
 
 ## Use a specific tsconfig file
 

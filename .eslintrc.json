@@ -13,6 +13,7 @@
     "project": "./tsconfig.json"
   },
   "rules": {
+    "i18n-text/no-en": "off",
     "no-console": "off",
     "filenames/match-regex": "off",
     "github/array-foreach": "off",
@@ -21,6 +22,7 @@
     "eslint-comments/no-use": "off",
     "import/no-namespace": "off",
     "no-unused-vars": "off",
+    "no-shadow": "off",
     "@typescript-eslint/no-unused-vars": "error",
     "@typescript-eslint/explicit-member-accessibility": [
       "error",

@@ -8,8 +8,8 @@ import { filesAdded, filesModified, filesRemoved } from './test_compare_2/filesC
 test.skip('1. compare errors test 2', () => {
 
     const resultCompareErrors = compareErrors({
-        errorsBefore: errorsBaseBranch as unknown as ErrorTs[],
-        errorsAfter: errorsCurrentBranch as unknown as ErrorTs[],
+        errorsBefore: errorsBaseBranch,
+        errorsAfter: errorsCurrentBranch,
         filesChanged: filesModified.split(' '),
         filesAdded: filesAdded.split(' '),
         filesDeleted: filesRemoved.split(' '),

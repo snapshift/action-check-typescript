@@ -30,7 +30,7 @@ export function compareErrors({ errorsBefore, errorsAfter, filesChanged, filesAd
         if (!isModified) {
             return {
                 ...errBefore,
-                lineInPr: parseInt(errBefore.line)
+                lineInPr: errBefore.line
             }
         }
 
@@ -39,12 +39,12 @@ export function compareErrors({ errorsBefore, errorsAfter, filesChanged, filesAd
             warning(`Impossible de trouver les line numbers pour le fichier ${errBefore.fileName}`)
             return {
                 ...errBefore,
-                lineInPr: parseInt(errBefore.line)
+                lineInPr: errBefore.line
             }
         }
-        const linesAddedBeforeLine = lineNumbersForThisFile.added.filter(n => n <= parseInt(errBefore.line))
-        const linesRemoveBeforeLine = lineNumbersForThisFile.removed.filter(n => n <= parseInt(errBefore.line))
-        const newLineNumber = parseInt(errBefore.line) + linesAddedBeforeLine.length - linesRemoveBeforeLine.length
+        const linesAddedBeforeLine = lineNumbersForThisFile.added.filter(n => n <= errBefore.line)
+        const linesRemoveBeforeLine = lineNumbersForThisFile.removed.filter(n => n <= errBefore.line)
+        const newLineNumber = errBefore.line + linesAddedBeforeLine.length - linesRemoveBeforeLine.length
         return {
             ...errBefore,
             lineInPr: newLineNumber
@@ -61,7 +61,7 @@ export function compareErrors({ errorsBefore, errorsAfter, filesChanged, filesAd
         let isNew = true
         const isStrictlySameExisting = errorsBeforeTransformed.find(errBefore => {
             const isInSameFile = errBefore.fileName === errAfter.fileName
-            return isInSameFile && errBefore.code === errAfter.code && errAfter.message === errBefore.message && errBefore.lineInPr === parseInt(errAfter.line)
+            return isInSameFile && errBefore.code === errAfter.code && errAfter.message === errBefore.message && errBefore.lineInPr === errAfter.line
         })
         if (isStrictlySameExisting) {
             isNew = false

@@ -14,9 +14,9 @@ test('1. parse tsc error line', () => {
   const errorParsed = parseTscErrorLine(line, tscMatcher)
   expect(errorParsed).toBeDefined()
   expect(errorParsed.fileName).toEqual('src/main.ts')
-  expect(errorParsed.line).toEqual('39')
-  expect(errorParsed.column).toEqual('11')
-  expect(errorParsed.code).toEqual('1155')
+  expect(errorParsed.line).toEqual(39)
+  expect(errorParsed.column).toEqual(11)
+  expect(errorParsed.code).toEqual(1155)
   expect(errorParsed.severity).toEqual('error')
   expect(errorParsed.message).toEqual("'const' declarations must be initialized.")
 })
@@ -26,9 +26,9 @@ test('1.2 parse tsc error line with pipe ', () => {
   const errorParsed = parseTscErrorLine(line, tscMatcher)
   expect(errorParsed).toBeDefined()
   expect(errorParsed.fileName).toEqual('server/webAPI/sal/webApiSalAddUpdate.ts')
-  expect(errorParsed.line).toEqual('45')
-  expect(errorParsed.column).toEqual('41')
-  expect(errorParsed.code).toEqual('2345')
+  expect(errorParsed.line).toEqual(45)
+  expect(errorParsed.column).toEqual(41)
+  expect(errorParsed.code).toEqual(2345)
   expect(errorParsed.severity).toEqual('error')
   expect(errorParsed.message).toEqual("Argument of type '(err?: Error | null | undefined, client?: PoolClient | undefined, sal_id?: number | null | undefined) => void' is not assignable to parameter of type 'IWebApiCallback'.")
 })
@@ -42,32 +42,32 @@ test('2. parse output', () => {
   expect(linesParsed).toHaveLength(2)
   expect(linesParsed[0].fileName).toEqual('src/main.ts')
   expect(linesParsed[1].fileName).toEqual('src/main.ts')
-  expect(linesParsed[1].column).toEqual('11')
+  expect(linesParsed[1].column).toEqual(11)
 })
 
 test('3. compareErrors', () => {
 
   const errorsBefore: ErrorTs[] = [{
     message: 'test',
-    line: '3',
-    column: '20',
-    code: '60312',
+    line: 3,
+    column: 20,
+    code: 60312,
     fileName: 'src/fakeErrors.ts',
     fileNameResolved: 'src/fakeErrors.ts'
   }]
 
   const errorsAfter: ErrorTs[] = [{
     message: 'test',
-    line: '3',
-    column: '20',
-    code: '60312',
+    line: 3,
+    column: 20,
+    code: 60312,
     fileName: 'src/fakeErrors.ts',
     fileNameResolved: 'src/fakeErrors.ts'
   }, {
     message: 'test2',
-    line: '10',
-    column: '20',
-    code: '60312',
+    line: 10,
+    column: 20,
+    code: 60312,
     fileName: 'src/fakeErrors.ts',
     fileNameResolved: 'src/fakeErrors.ts'
   }]
@@ -102,8 +102,8 @@ test('4. Parsing output', () => {
 test('5. compare errors test 1', () => {
 
   const resultCompareErrors = compareErrors({
-    errorsBefore: errorsBaseBranch as unknown as ErrorTs[],
-    errorsAfter: errorsCurrentBranch as unknown as ErrorTs[],
+    errorsBefore: errorsBaseBranch,
+    errorsAfter: errorsCurrentBranch,
     filesChanged: filesModified.split(' '),
     filesAdded: filesAdded.split(' '),
     filesDeleted: filesRemoved.split(' '),
@@ -121,10 +121,10 @@ test('5. compare errors test 1', () => {
   })
 
   const comment = getBodyComment({
-    errorsInProjectBefore: errorsBaseBranch,
-    errorsInProjectAfter: errorsCurrentBranch,
+    errorsInProjectBefore: errorsBaseBranch as unknown as ErrorTs[],
+    errorsInProjectAfter: errorsCurrentBranch as unknown as ErrorTs[],
     newErrorsInProject: resultCompareErrors.errorsAdded,
-    errorsInModifiedFiles,
+    errorsInModifiedFiles: errorsInModifiedFiles as unknown as ErrorTs[],
     newErrorsInModifiedFiles
   })
 

@@ -1,36 +1,42 @@
-name: 'Action Check Typescript errors'
-description: 'Check tsc errors and compare errors wih base branch'
-author: 'Arhia'
+name: "Action Check Typescript errors"
+description: "Check tsc errors and compare errors wih base branch"
+author: "Arhia"
 icon: box
 inputs:
   repo-token:
-    description: 'Token for the repository. Can be passed in using {{ secrets.GITHUB_TOKEN }}'
+    description: "Token for the repository. Can be passed in using {{ secrets.GITHUB_TOKEN }}"
     required: true
   directory:
     description: "Directory where to run install and build. Default is '.'"
-    default: '.'
+    default: "."
   files-changed:
     description: "List of files changed in the current PR (separated by space), use action 'futuratrepadeira/changed-files' for that"
-    default: ''
+    default: ""
   files-added:
     description: "List of files added in the current PR (separated by space), use action 'futuratrepadeira/changed-files' for that"
-    default: ''
+    default: ""
   files-deleted:
     description: "List of files deleted in the current PR (separated by space), use action 'futuratrepadeira/changed-files' for that"
-    default: ''
+    default: ""
   line-numbers:
     description: "List of files with added and removed lines, use action 'Equip-Collaboration/diff-line-numbers' for that"
   ts-config-path:
-    description: "Path of tsconfig file. default is '.'"
-    default: './tsconfig.json'
+    description: "Path of tsconfig file. default is './tsconfig.json'"
+    default: "./tsconfig.json"
   use-check:
-    description: 'Report status as a CI Check'
+    description: "Report status as a CI Check"
   check-fail-mode:
     description: "Allowed values : added, errors_in_pr, errors_in_code"
     required: true
+  output-behaviour:
+    description: "Allowed values : comment, annotate, both"
+    default: "comment"
+  comment-behaviour:
+    description: "Allowed values : new, edit"
+    default: "new"
   debug:
-    description: "Set true to log ts errors in base branch and pr branc"
+    description: "Set true to log ts errors in base branch and pr branch"
     default: false
 runs:
-  using: 'node16'
-  main: 'dist/index.js'
+  using: "node16"
+  main: "dist/index.js"
